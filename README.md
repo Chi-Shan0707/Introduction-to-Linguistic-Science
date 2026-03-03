@@ -95,6 +95,13 @@ Through weekly lectures on specialized topics, delivered by expert scholars in t
 | 分组讨论 Group Discussion | 20% | - |
 | 期末考试 Final Examination | 30% | 其他形式 Other formats |
 
+> 课程考核
+
+    - 平时作业
+      有?没有?
+    - 期末作业
+        - 选择一个感兴趣的话题，写一篇课程感受
+        - 要求:(1)文章必须独立完成;(2)文章字数不超过4000字。(3)1份纸质版(11楼信箱200号)+1份电子版(shengym@fudan.edu.cn)
 **成绩记载方式 Grading System**: 两级制 Pass/Fail
 
 ---

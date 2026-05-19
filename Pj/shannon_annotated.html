@@ -1,0 +1,926 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Shannon 1951 — Prediction and Entropy of Printed English</title>
+<script>
+MathJax = {
+  tex: {
+    inlineMath: [['\\(', '\\)']],
+    displayMath: [['$$', '$$']]
+  }
+};
+</script>
+<script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+<style>
+:root{
+  --bg:#fafafa; --surface:#fff; --border:#e0e0e0;
+  --text:#222; --text-dim:#888; --text-muted:#666;
+  --accent:#2563eb; --accent-light:#eff6ff;
+  --annot-bg:#fefce8; --annot-border:#eab308;
+  --code-bg:#f5f5f5; --highlight:#dbeafe;
+}
+*,*::before,*::after{margin:0;padding:0;box-sizing:border-box}
+html{scroll-behavior:smooth}
+
+body{
+  font-family:'Georgia','Times New Roman',serif;
+  background:var(--bg);color:var(--text);line-height:1.8;
+  display:flex;justify-content:center;
+}
+
+/* sidebar */
+.sidebar{
+  position:fixed;top:0;left:0;bottom:0;width:240px;
+  background:var(--surface);border-right:1px solid var(--border);
+  padding:2rem 1.5rem;overflow-y:auto;z-index:10;
+}
+.sidebar h2{
+  font-size:.7rem;text-transform:uppercase;letter-spacing:1.2px;
+  color:var(--text-dim);margin-bottom:1rem;
+}
+.sidebar ul{list-style:none}
+.sidebar li{margin-bottom:.3rem}
+.sidebar a{
+  color:var(--accent);text-decoration:none;font-size:.82rem;
+  display:block;padding:.2rem .4rem;border-radius:3px;transition:all .15s;
+}
+.sidebar a:hover{background:var(--accent-light)}
+.sidebar .s-label{font-size:.72rem;color:var(--text-dim);margin-top:.6rem;padding:.2rem .4rem;border-top:1px solid var(--border);padding-top:.6rem}
+
+/* main */
+.main-wrap{margin-left:240px;width:100%;max-width:940px}
+.container{background:var(--surface);min-height:100vh;box-shadow:0 0 40px rgba(0,0,0,.06)}
+
+header{
+  padding:3rem 2.5rem 2rem;text-align:center;
+  border-bottom:1px solid var(--border);
+}
+header h1{font-size:1.9rem;font-weight:700;color:var(--text);letter-spacing:-.3px}
+header .meta{margin-top:.4rem;font-size:.9rem;color:var(--text-muted)}
+header .meta .author{color:var(--accent);font-weight:600}
+header .journal{font-size:.82rem;color:var(--text-dim);font-style:italic;margin-top:.1rem}
+header .subtitle{margin-top:.7rem;font-size:.8rem;color:var(--text-dim);background:var(--code-bg);display:inline-block;padding:.2rem .8rem;border-radius:999px}
+
+.abstract{
+  background:var(--code-bg);border:1px solid var(--border);
+  padding:1.2rem 1.5rem;margin:1.5rem 0;border-radius:6px;
+  font-size:.95rem;line-height:1.8;text-align:justify;
+  color:var(--text);
+}
+.abstract::before{content:"Abstract";display:block;font-size:.68rem;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:var(--text-muted);margin-bottom:.5rem}
+
+main{padding:2.5rem}
+section{margin-bottom:2.8rem}
+section[id]{scroll-margin-top:1.5rem}
+
+h2{
+  font-size:1.35rem;font-weight:700;margin-bottom:1.2rem;
+  padding-bottom:.4rem;border-bottom:2px solid var(--accent);
+  color:var(--text);
+}
+h3{
+  font-size:1.05rem;font-weight:600;margin:1.8rem 0 .8rem;
+  color:var(--accent);
+}
+
+.paper-para{
+  font-size:.98rem;margin-bottom:.9rem;text-align:justify;line-height:1.85;
+}
+.paper-para sup{color:var(--accent);font-size:.75em}
+.paper-para em{font-style:italic}
+.paper-para strong{font-weight:700}
+.fn{font-size:.82rem;color:var(--text-muted);margin-top:-.3rem;margin-bottom:1rem}
+
+.annotation{
+  background:var(--annot-bg);border-left:3px solid var(--annot-border);
+  padding:1rem 1.3rem;margin:1.2rem 0;border-radius:0 5px 5px 0;
+}
+.annotation .atitle{
+  font-size:.72rem;font-weight:700;text-transform:uppercase;
+  letter-spacing:.6px;color:#a16207;margin-bottom:.5rem;
+}
+.annotation p{margin-bottom:.5rem;line-height:1.7;color:var(--text);font-size:.92rem}
+.annotation p:last-child{margin-bottom:0}
+.annotation code{background:#f5edd6;padding:.05rem .3rem;border-radius:2px;font-size:.85em}
+.annotation ul,.annotation ol{margin:.3rem 0 .3rem 1.2rem}
+.annotation li{margin-bottom:.25rem;font-size:.9rem}
+.annotation strong{font-weight:700}
+.annotation em{font-style:italic;color:#92400e}
+
+.math-block{
+  background:var(--code-bg);border:1px solid var(--border);
+  border-left:3px solid var(--accent);padding:1rem 1.3rem;
+  margin:.8rem 0;border-radius:5px;overflow-x:auto;
+}
+.math-block p{margin-bottom:.2rem;font-size:.95rem}
+.math-block p:last-child{margin-bottom:0}
+
+.experiment{
+  background:var(--code-bg);border:1px solid var(--border);
+  padding:1rem 1.3rem;margin:.8rem 0;border-radius:5px;
+  font-family:'Courier New',monospace;font-size:.82rem;line-height:1.6;
+  overflow-x:auto;
+}
+.experiment .orig{color:var(--text)}
+.experiment .red{color:#92400e}
+.experiment .wrong{font-style:italic;color:#b91c1c}
+.experiment .label{color:var(--text-dim);font-size:.78rem}
+
+.highlight-box{
+  background:var(--highlight);border-left:3px solid var(--accent);
+  padding:1.2rem 1.3rem;margin:1.2rem 0;border-radius:0 5px 5px 0;
+}
+.highlight-box p{margin-bottom:.4rem;font-size:.93rem;line-height:1.7}
+.highlight-box p:last-child{margin-bottom:0}
+.highlight-box strong{color:var(--accent)}
+
+.info-box{
+  background:var(--accent-light);border-left:3px solid var(--accent);
+  padding:.8rem 1.2rem;margin:1rem 0;border-radius:0 5px 5px 0;
+  font-size:.88rem;color:var(--text-muted);
+}
+.info-box p{margin-bottom:.3rem}
+.info-box p:last-child{margin-bottom:0}
+.info-box ol{margin:.3rem 0 .3rem 1.2rem}
+.info-box li{margin-bottom:.15rem}
+
+.table-wrap{overflow-x:auto;margin:1.2rem 0}
+table{width:100%;border-collapse:collapse;border:1px solid var(--border);border-radius:5px;overflow:hidden;font-size:.85rem}
+thead{background:var(--code-bg)}
+th,td{padding:.45rem .6rem;text-align:center;border-bottom:1px solid var(--border)}
+th{font-weight:600;color:var(--text)}
+td{color:var(--text)}
+tbody tr:hover{background:rgba(0,0,0,.02)}
+tbody tr:last-child td{border-bottom:none}
+td.left{text-align:left}
+td.num{font-family:'Courier New',monospace;color:var(--accent)}
+
+pre{background:var(--code-bg);padding:1rem;border-radius:5px;overflow-x:auto;font-size:.78rem;line-height:1.4;margin:.8rem 0;border:1px solid var(--border)}
+code{font-family:'Courier New',monospace;background:var(--code-bg);padding:.05rem .25rem;border-radius:2px;font-size:.85em}
+pre code{background:transparent;padding:0}
+blockquote{border-left:3px solid var(--accent);padding:.7rem 1rem;margin:1rem 0;color:var(--text-muted);font-style:italic;background:var(--accent-light);border-radius:0 5px 5px 0}
+
+footer{
+  text-align:center;padding:1.8rem;font-size:.82rem;
+  color:var(--text-dim);border-top:1px solid var(--border);
+}
+
+@media(max-width:800px){
+  .sidebar{position:static;width:100%;border-right:none;border-bottom:1px solid var(--border);padding:1rem 1.2rem}
+  .sidebar ul{columns:2}
+  .main-wrap{margin-left:0}
+  header h1{font-size:1.5rem}
+  main{padding:1.2rem}
+}
+@media print{
+  .sidebar{display:none}
+  .main-wrap{margin-left:0}
+  body{background:#fff}
+  .annotation{break-inside:avoid}
+}
+</style>
+</head>
+<body>
+
+<nav class="sidebar">
+  <h2>Contents</h2>
+  <ul>
+    <li><a href="#s1">1. Introduction</a></li>
+    <li><a href="#s2">2. Entropy Calc.</a></li>
+    <li><a href="#s3">3. Prediction of English</a></li>
+    <li><a href="#s4">4. Ideal N-Gram Prediction</a></li>
+    <li><a href="#s5">5. Entropy Bounds</a></li>
+    <li><a href="#s6">6. Experimental Bounds</a></li>
+    <li><a href="#summary">Summary &amp; Connections</a></li>
+  </ul>
+  <p class="s-label">Shannon, Bell Syst. Tech. J. 1951</p>
+</nav>
+
+<div class="main-wrap">
+<div class="container">
+
+<header>
+  <h1>Prediction and Entropy of Printed English</h1>
+  <p class="meta"><span class="author">C. E. Shannon</span> &middot; Manuscript Received Sept 15, 1950</p>
+  <p class="journal">Bell System Technical Journal, Vol. 30, pp. 50–64, January 1951</p>
+  <p class="subtitle">Annotated Edition</p>
+</header>
+
+<main>
+
+<div class="abstract">
+<p>A new method of estimating the entropy and redundancy of a language is described. This method exploits the knowledge of the language statistics possessed by those who speak the language, and depends on experimental results in prediction of the next letter when the preceding text is known. Results of experiments in prediction are given, and some properties of an ideal predictor are developed.</p>
+</div>
+
+<!-- ==================== SECTION 1 ==================== -->
+<section id="s1">
+<h2>1. Introduction</h2>
+
+<p class="paper-para">
+IN A previous paper<sup>1</sup> the entropy and redundancy of a language have been defined. The entropy is a statistical parameter which measures, in a certain sense, how much information is produced on the average for each letter of a text in the language. If the language is translated into binary digits (0 or 1) in the most efficient way, the entropy \(H\) is the average number of binary digits required per letter of the original language. The redundancy, on the other hand, measures the amount of constraint imposed on a text in the language due to its statistical structure, e.g., in English the high frequency of the letter E, the strong tendency of H to follow T or of U to follow Q. It was estimated that when statistical effects extending over not more than eight letters are considered the entropy is roughly 2.3 bits per letter, the redundancy about 50 per cent.
+</p>
+
+<div class="annotation">
+<p class="atitle">What Is Entropy?</p>
+<p><strong>Entropy</strong> = average information per letter in bits. If all 27 symbols (A–Z + space) were equally likely, entropy would be \(\log_2 27 \approx 4.76\) bits. But English has strong patterns — E is common, Q is almost always followed by U — so actual information is far lower.</p>
+<p><strong>Redundancy</strong> = the fraction of text predictable from structure. With entropy ~2.3 bits vs 4.76 max, redundancy ≈ 50%. Roughly half of English letters are "extra" — you could delete every other letter and still be understood. This is why you can read "I w__ld l__e t__..." with ease.</p>
+<p><strong>Modern:</strong> Every compression algorithm (ZIP, MP3, H.264) removes precisely this redundancy. Shannon's source coding theorem proves no lossless compressor can beat the entropy limit.</p>
+</div>
+
+<p class="paper-para">
+Since then a new method has been found for estimating these quantities, which is more sensitive and takes account of long range statistics, influences extending over phrases, sentences, etc. This method is based on a study of the predictability of English; how well can the next letter of a text be predicted when the preceding N letters are known. The results of some experiments in prediction will be given, and a theoretical analysis of some of the properties of ideal prediction. By combining the experimental and theoretical results it is possible to estimate upper and lower bounds for the entropy and redundancy. From this analysis it appears that, in ordinary literary English, the long range statistical effects (up to 100 letters) reduce the entropy to something of the order of one bit per letter, with a corresponding redundancy of roughly 75%.
+</p>
+
+<div class="annotation">
+<p class="atitle">The Paper's Central Claim</p>
+<p>With <strong>100 letters</strong> of context, the next letter carries only about <strong>1 bit</strong> of information — meaning roughly 3 out of every 4 letters are predictable from context. This is why half-heard conversations in noisy rooms remain understandable, and why English text can theoretically be compressed to 25% of its original size.</p>
+</div>
+
+<p class="paper-para">
+The redundancy may be still higher when structure extending over paragraphs, chapters, etc. is included. However, as the lengths involved are increased, the parameters in question become more erratic and uncertain, and they depend more critically on the type of text involved.
+</p>
+<p class="fn"><sup>1</sup> C. E. Shannon, "A Mathematical Theory of Communication," Bell System Technical Journal, v. 27, pp. 379-423, 623-656, July, October, 1948.</p>
+
+<div class="annotation">
+<p class="atitle">Why Long Context Is Hard</p>
+<p>With 100-letter sequences, the number of possible combinations is \(27^{100}\) — astronomically vast. No corpus can tabulate them. Shannon needed a <em>new method</em> (the prediction experiment) to bypass direct counting. His honest admission that parameters become "more erratic" for long contexts reflects a real difficulty: long-range structure depends heavily on text genre, author style, and subject matter.</p>
+</div>
+</section>
+
+<!-- ==================== SECTION 2 ==================== -->
+<section id="s2">
+<h2>2. Entropy Calculation from the Statistics of English</h2>
+
+<p class="paper-para">
+One method of calculating the entropy \(H\) is by a series of approximations \(F_0, F_1, F_2, \dots\), which successively take more and more of the statistics of the language into account and approach \(H\) as a limit. \(F_N\) may be called the <strong>N-gram entropy</strong>; it measures the amount of information or entropy due to statistics extending over \(N\) adjacent letters of text. \(F_N\) is given by
+</p>
+
+<div class="math-block">
+$$
+F_N = -\sum p(b_i, j) \log_2 p_{b_i}(j)
+$$
+$$
+= -\sum p(b_i, j) \log_2 p(b_i, j) + \sum p(b_i) \log_2 p(b_i) \tag{1}
+$$
+<p>where \(b_i\) is a block of \(N-1\) letters, \(j\) follows \(b_i\), and \(p_{b_i}(j) = p(b_i, j) / p(b_i)\).</p>
+</div>
+
+<div class="annotation">
+<p class="atitle">Understanding \(F_N\)</p>
+<p>\(F_N\) measures the average uncertainty of the next letter given the preceding \(N-1\) letters. The two forms are equivalent via \(\log(A/B) = \log A - \log B\). The second form is more practical: \(F_N =\) (entropy of N-letter blocks) \(-\) (entropy of \((N-1)\)-letter blocks). It answers: how much information does the Nth letter add beyond the first \(N-1\)?</p>
+<p>As \(N\) grows, each added context letter removes some uncertainty, so \(F_N\) decreases. The limit \(H = \lim_{N\to\infty} F_N\) is the true per-letter entropy with <em>infinite</em> context.</p>
+</div>
+
+<p class="paper-para">
+The equation (1) can be interpreted as measuring the average uncertainty (conditional entropy) of the next letter \(j\) when the preceding \(N-1\) letters are known. As \(N\) is increased, \(F_N\) includes longer and longer range statistics and the entropy, \(H\), is given by the limiting value of \(F_N\) as \(N \to \infty\):
+</p>
+
+<div class="math-block">
+$$
+H = \lim_{N \to \infty} F_N. \tag{2}
+$$
+</div>
+
+<div class="annotation">
+<p class="atitle">The Converging Sequence</p>
+<p>\(F_N\) descends: \(F_0 = 4.76\), \(F_1 \approx 4.14\), \(F_2 \approx 3.56\), \(F_3 \approx 3.3\), trending toward \(H\). You cannot compute \(F_N\) for large \(N\) by counting (data needs are too vast), but you can <strong>estimate</strong> the limit via the prediction experiment, which taps the implicit statistical knowledge of any fluent English speaker.</p>
+</div>
+
+<h3>Computing \(F_0, F_1, F_2, F_3\) from Tables</h3>
+
+<p class="paper-para">
+The \(N\)-gram entropies \(F_N\) for small values of \(N\) can be calculated from standard tables of letter, digram and trigram frequencies. If spaces and punctuation are ignored we have a twenty-six letter alphabet and \(F_0\) may be taken (by definition) to be \(\log_2 26\), or 4.7 bits per letter. \(F_1\) involves letter frequencies and is given by
+</p>
+
+<div class="math-block">
+$$
+F_1 = -\sum_{i=1}^{26} p(i) \log_2 p(i) = 4.14 \text{ bits per letter}. \tag{3}
+$$
+</div>
+
+<div class="annotation">
+<p class="atitle">\(F_0\) vs \(F_1\) — Skewed Frequencies Reduce Entropy</p>
+<p>If all 26 letters were equally likely, entropy = \(\log_2 26 = 4.70\). Real letter frequencies (E ~13%, Z ~0.1%) skew the distribution, reducing uncertainty to 4.14 bits.</p>
+</div>
+
+<p class="paper-para">
+The digram approximation \(F_2\) gives the result
+</p>
+
+<div class="math-block">$$
+\begin{align}
+F_2 &= -\sum_{i,j} p(i,j) \log_2 p_i(j) \nonumber \\
+&= -\sum_{i,j} p(i,j) \log_2 p(i,j) + \sum_i p(i) \log_2 p(i) \nonumber \\
+&= 7.70 - 4.14 = 3.56 \text{ bits per letter}. \tag{4}
+\end{align}
+$$
+</div>
+<div class="annotation">
+<p class="atitle">\(F_2\) — The Effect of Pairs</p>
+<p>Knowing the preceding letter drops uncertainty from 4.14 to 3.56 bits — a savings of 0.58 bits from common pairs like TH, HE, IN, ER. The joint entropy of a pair is 7.70 bits; subtracting single-letter entropy 4.14 gives the conditional entropy of the second letter given the first.</p>
+</div>
+
+<p class="paper-para">
+The trigram entropy is given by
+</p>
+
+<div class="math-block">$$
+\begin{align}
+F_3 &= -\sum_{i,j,k} p(i,j,k) \log_2 p_{ij}(k) \nonumber \\
+&= -\sum_{i,j,k} p(i,j,k) \log_2 p(i,j,k) + \sum_{i,j} p(i,j) \log_2 p(i,j) \nonumber \\
+&= 11.0 - 7.7 = 3.3 \text{ bits per letter}. \tag{5}
+\end{align}
+$$
+</div>
+
+<p class="paper-para">
+In this calculation the trigram table used did not take into account trigrams bridging two words, such as WOW and OWO in TWO WORDS. To compensate partially for this omission, corrected trigram probabilities \(p(i,j,k)\) were obtained from the probabilities \(p'(i,j,k)\) of the table by the following rough formula:
+</p>
+
+<div class="math-block">
+$$
+p(i,j,k) = \frac{2.5}{4.5}\, p'(i,j,k) + \frac{1}{4.5}\, r(i)p(j,k) + \frac{1}{4.5}\, p(i,j)s(k)
+$$
+</div>
+
+<p class="paper-para">
+where \(r(i)\) is the probability of letter \(i\) as the terminal letter of a word and \(s(k)\) is the probability of \(k\) as an initial letter. Thus the trigrams within words (an average of 2.5 per word) are counted according to the table; the bridging trigrams (one of each type per word) are counted approximately by assuming independence of the terminal letter of one word and the initial digram in the next or vice versa. Because of the approximations involved here, and also because of the fact that the sampling error in identifying probability with sample frequency is more serious, the value of \(F_3\) is less reliable than the previous numbers.
+</p>
+
+<div class="annotation">
+<p class="atitle">\(F_3\) — Diminishing Returns</p>
+<p>The drop from 3.56 to 3.3 is only 0.26 bits — less than the drop from \(F_1\) to \(F_2\). This illustrates <strong>diminishing returns</strong>: the first few context letters help most. Knowing "T" tells you "H" is likely; knowing "TH" narrows it further; but knowing "THE" gives little extra constraint.</p>
+</div>
+
+<p class="paper-para">
+Since tables of \(N\)-gram frequencies were not available for \(N &gt; 3\), \(F_4, F_5\), etc. could not be calculated in the same way. However, word frequencies have been tabulated and can be used to obtain a further approximation.
+</p>
+
+<div class="annotation">
+<p class="atitle">The Data Wall</p>
+<p>Computing \(F_4\) directly would need probabilities for all \(26^4 = 456{,}976\) sequences — barely feasible. For \(F_{10}\), you would need \(26^{10} \approx 1.4 \times 10^{14}\) entries — impossible in 1951. Shannon's solution: switch to <strong>word-level</strong> statistics using Zipf's law.</p>
+</div>
+
+<h3>Word-Level Approximation via Zipf's Law</h3>
+
+<p class="paper-para">
+Figure 1 is a plot on log-log paper of the probabilities of words against frequency rank. The most frequent English word "the" has a probability .071 and this is plotted against 1. The next most frequent word "of" has a probability of .034 and is plotted against 2, etc. Using logarithmic scales both for probability and rank, the curve is approximately a straight line with slope \(-1\); thus, if \(p_n\) is the probability of the \(n\)th most frequent word, we have, roughly
+</p>
+
+<div class="math-block">
+$$
+p_n \approx \frac{k}{n}. \tag{6}
+$$
+</div>
+
+<div class="annotation">
+<p class="atitle">Zipf's Law</p>
+<p>A word's frequency is inversely proportional to its rank: the most frequent word occurs twice as often as the second, three times as often as the third, and so on. This holds across virtually all human languages (and even city populations, website traffic, etc.). But \(\sum_{1}^{\infty} 1/n\) diverges, so the law cannot hold forever. Shannon cuts off at rank 8,727, where total probability reaches 1.</p>
+</div>
+
+<p class="paper-para">
+The formula (6) clearly cannot hold indefinitely since the total probability \(\sum p_n\) must be unity, while \(\sum 1/n\) is infinite. If we assume (in the absence of any better estimate) that the formula \(p_n = A/n\) holds out to the n at which the total probability is unity, and that \(p_n = 0\) for larger n, we find that the critical n is the word of rank 8,727. The entropy is then:
+</p>
+
+<div class="math-block">
+$$
+-\sum_{n=1}^{8727} p_n \log_2 p_n = 11.82 \text{ bits per word}, \tag{7}
+$$
+<p>or \(11.82 / 4.5 = 2.62\) bits per letter since the average word length in English is 4.5 letters.</p>
+</div>
+
+<p class="paper-para">
+One might be tempted to identify this value with \(F_{4.5}\), but actually the ordinate of the \(F_N\) curve at \(N = 4.5\) will be above this value. The reason is that \(F_4\) or \(F_5\) involves groups of four or five letters regardless of word division. A word is a cohesive group of letters with strong internal statistical influences, and consequently the \(N\)-grams within words are more restricted than those which bridge words. The effect of this is that we have obtained, in 2.62 bits per letter, an estimate which corresponds more nearly to, say, \(F_5\) or \(F_6\).
+</p>
+
+<p class="paper-para">
+A similar set of calculations was carried out including the space as an additional letter, giving a 27 letter alphabet. The results of both 26- and 27-letter calculations are summarized below:
+</p>
+
+<div class="table-wrap">
+<table>
+<thead><tr><th>Alphabet</th><th>\(F_0\)</th><th>\(F_1\)</th><th>\(F_2\)</th><th>\(F_3\)</th><th>\(F_{\text{word}}\)</th></tr></thead>
+<tbody>
+<tr><td class="left">26-letter</td><td>4.70</td><td>4.14</td><td>3.56</td><td>3.3</td><td>2.62</td></tr>
+<tr><td class="left">27-letter (incl. space)</td><td>4.76</td><td>4.03</td><td>3.32</td><td>3.1</td><td>2.14</td></tr>
+</tbody></table>
+</div>
+
+<p class="paper-para">
+The estimate of 2.3 for \(F_8\), alluded to above, was found by several methods, one of which is the extrapolation of the 26-letter series above out to that point. Since the space symbol is almost completely redundant when sequences of one or more words are involved, the values of \(F_N\) in the 27-letter case will be \(4.5/5.5\) or .818 of \(F_N\) for the 26-letter alphabet when \(N\) is reasonably large.
+</p>
+
+<div class="annotation">
+<p class="atitle">Key Observations</p>
+<ul>
+<li>Adding space makes \(F_1\) <em>lower</em> (4.03 vs 4.14) because the distribution skews further — space is ~18% of all characters.</li>
+<li>For large \(N\), the space is nearly redundant (words must be separated), so 27-letter \(F_N\) approaches \(4.5/5.5 \approx 0.818\) of the 26-letter value.</li>
+<li>Shannon extrapolates \(F_8 \approx 2.3\) — below the word-level 2.62, implying the word calculation corresponds to \(N \approx 5\) or 6.</li>
+</ul>
+</div>
+</section>
+
+<!-- ==================== SECTION 3 ==================== -->
+<section id="s3">
+<h2>3. Prediction of English</h2>
+
+<p class="paper-para">
+The new method of estimating entropy exploits the fact that anyone speaking a language possesses, implicitly, an enormous knowledge of the statistics of the language. Familiarity with the words, idioms, cliches and grammar enables him to fill in missing or incorrect letters in proof-reading, or to complete an unfinished phrase in conversation.
+</p>
+
+<div class="annotation">
+<p class="atitle">Breakthrough: Humans as Statistical Engines</p>
+<p>Instead of tabulating long-range letter sequences (impossible in 1951), Shannon realized that <strong>fluent speakers carry an implicit statistical model</strong> of English. Every time you finish someone's sentence or fill in a garbled word, you use this model. The prediction experiment makes it explicit and measurable.</p>
+</div>
+
+<h3>Experiment 1: Binary Guess-or-Correct</h3>
+
+<p class="paper-para">
+Select a short passage unfamiliar to the person who is to do the predicting. He is then asked to guess the first letter in the passage. If the guess is correct he is so informed, and proceeds to guess the second letter. If not, he is told the correct first letter and proceeds to his next guess. This is continued through the text.
+</p>
+
+<div class="experiment">
+<p><span class="label">Original:</span> <span class="orig">THE ROOM WAS NOT VERY LIGHT A SMALL OBLONG</span></p>
+<p><span class="label">Reduced:</span> <span class="red">——R<span class="wrong">OO</span>——NOT-V——I<span class="wrong">SM</span>——OBL</span></p>
+<p style="margin-top:.5rem"><span class="label">Original:</span> <span class="orig">READING LAMP ON THE DESK SHED GLOW ON</span></p>
+<p><span class="label">Reduced:</span> <span class="red">REA——O——D——SHED-GLO—0—</span></p>
+<p style="margin-top:.5rem"><span class="label">Original:</span> <span class="orig">POLISHED WOOD BUT LESS ON THE SHABBY RED CARPET</span></p>
+<p><span class="label">Reduced:</span> <span class="red">P-L-S——<span class="wrong">Q</span>—BU—L-S—0——SH——RE—C<span class="wrong">...</span></span></p>
+</div>
+
+<p class="paper-para">
+Of a total of 129 letters, 89 or 69% were guessed correctly. The errors, as would be expected, occur most frequently at the beginning of words and syllables where the line of thought has more possibility of branching out.
+</p>
+
+<p class="paper-para">
+It might be thought that the second line, which we will call the <strong>reduced text</strong>, contains much less information than the first. Actually, both lines contain the same information in the sense that it is possible, at least in principle, to recover the first line from the second. To accomplish this we need an identical twin of the individual who produced the sequence. The twin (who must be mathematically, not just biologically identical) will respond in the same way when faced with the same problem. Suppose, now, we have the reduced text. We ask the twin to guess the passage. At each point we will know whether his guess is correct, since he is guessing the same as the first twin and the presence of a dash in the reduced text corresponds to a correct guess. The letters he guesses wrong are also available, so that at each stage he can be supplied with precisely the same information the first twin had available.
+</p>
+
+<p class="paper-para">
+The need for an identical twin in this conceptual experiment can be eliminated as follows. In general, good prediction does not require knowledge of more than \(N\) preceding letters of text, with \(N\) fairly small. There are only a finite number of possible sequences of \(N\) letters. We could ask the subject to guess the next letter for each of these possible \(N\)-grams. The complete list of these predictions could then be used both for obtaining the reduced text from the original and for the inverse reconstruction process.
+</p>
+
+<p class="paper-para">
+To put this another way, the reduced text can be considered to be an encoded form of the original, the result of passing the original text through a reversible transducer. In fact, a communication system could be constructed in which only the reduced text is transmitted from one point to the other.
+</p>
+
+<div class="annotation">
+<p class="atitle">Reading the Reduced Text</p>
+<p>Dashes (<strong>—</strong>) = correctly guessed letter. The actual letter appears where wrong (shown in <span class="wrong">red italic</span>). Tracing the first line: "THE " all correct (5 dashes), then R correct, OO wrong, then dash (correct), etc. Of 129 letters, 89 (69%) were guessed correctly. Errors concentrate at word beginnings where branching is highest.</p>
+</div>
+
+<div class="highlight-box">
+<p><strong>The "Identical Twin" Thought Experiment:</strong> The reduced text contains the same information as the original. An <em>identical twin</em> of the predictor (same knowledge, same strategy) can reconstruct the original perfectly: a dash means their guess was also correct; a letter means their guess was wrong and this is the correct letter. This is the foundation of predictive compression — encoder and decoder must share the same model.</p>
+</div>
+
+<h3>Experiment 2: Multi-Try (Counting Guesses)</h3>
+
+<p class="paper-para">
+An extension of the above experiment yields further information. As before, the subject knows the text up to the current point and is asked to guess the next letter. If he is wrong, he is told so and asked to guess again. This is continued until he finds the correct letter.
+</p>
+
+<div class="experiment">
+<p><span class="label">Original:</span> <span class="orig">THERE IS NO REVERSE ON A MOTORCYCLE A</span></p>
+<p><span class="label">Reduced:</span> <span class="red">1 1 1 5 1 1 2 1 1 2 1 1 15 1 17 1 1 1 2 1 3 2 1 2 2 7 1 1 1 1 4 1 1 1 1 1 3 1</span></p>
+<p style="margin-top:.5rem"><span class="label">Original:</span> <span class="orig">FRIEND OF MINE FOUND THIS OUT</span></p>
+<p><span class="label">Reduced:</span> <span class="red">8 6 1 3 1 1 1 1 1 1 1 1 1 1 1 6 2 1 1 1 1 1 1 2 1 1 1 1 1 1</span></p>
+</div>
+
+<p class="paper-para">
+Out of the 102 symbols in the first line, 79 were correct on the first guess, 8 on the second, 3 on the third, 2 each on the fourth and fifth, and only 8 required more than five guesses.
+</p>
+
+<div class="annotation">
+<p class="atitle">The Number-of-Guesses Experiment</p>
+<p>Each number = how many guesses the subject needed. "1" = first guess correct; "17" = needed 17 tries (out of 27). The distribution is overwhelmingly 1's — most letters are obvious from context. The reduction maps the 27-letter alphabet onto numbers 1–27 where 1 is overwhelmingly most common. This skewed distribution makes the entropy easy to bound.</p>
+</div>
+
+<div class="annotation">
+<p class="atitle">The Critical Property: Reversibility</p>
+<p>The prediction process is a <strong>transducer</strong>: it converts English text into a number sequence that is (1) <strong>highly skewed</strong> (redundancy made explicit), (2) <strong>reversible</strong> (original recoverable via identical twin), (3) <strong>information-preserving</strong> (entropy unchanged). Because the reduced text has a simple, skewed distribution, its entropy can be upper- and lower-bounded using elementary inequalities — this is how Shannon estimates the original entropy.</p>
+</div>
+
+<h3>Systematic N-Letter Context Experiment</h3>
+
+<p class="paper-para">
+One hundred samples of English text were selected at random from a book, each fifteen letters in length. The subject was required to guess the text, letter by letter, for each sample as in the preceding experiment. Thus one hundred samples were obtained in which the subject had available 0, 1, 2, 3, ..., 14 preceding letters. To aid in prediction the subject made such use as he wished of various statistical tables, letter, digram and trigram tables, a table of the frequencies of initial letters in words, a list of the frequencies of common words and a dictionary.
+</p>
+
+<div class="annotation">
+<p class="atitle">Systematic Data Collection</p>
+<p>100 samples of 15 letters each from <em>Jefferson the Virginian</em> (ordinary literary English). For each sample, the subject had 0 to 14 preceding letters known. Statistical tables helped make results approximate optimal prediction. A separate test with 100 known letters was also run.</p>
+</div>
+
+<div class="table-wrap">
+<table>
+<thead><tr><th>Guess</th><th>1</th><th>2</th><th>3</th><th>4</th><th>5</th><th>6</th><th>7</th><th>8</th><th>9</th><th>10</th><th>11</th><th>12</th><th>13</th><th>14</th><th>15</th><th>100</th></tr></thead>
+<tbody>
+<tr><td>1</td><td class="num">18.2</td><td class="num">29.2</td><td class="num">36</td><td class="num">47</td><td class="num">51</td><td class="num">58</td><td class="num">48</td><td class="num">66</td><td class="num">66</td><td class="num">67</td><td class="num">62</td><td class="num">58</td><td class="num">66</td><td class="num">72</td><td class="num">60</td><td class="num">80</td></tr>
+<tr><td>2</td><td class="num">10.7</td><td class="num">14.8</td><td class="num">20</td><td class="num">18</td><td class="num">13</td><td class="num">19</td><td class="num">17</td><td class="num">15</td><td class="num">13</td><td class="num">10</td><td class="num">9</td><td class="num">14</td><td class="num">9</td><td class="num">6</td><td class="num">18</td><td class="num">7</td></tr>
+<tr><td>3</td><td class="num">8.6</td><td class="num">10.0</td><td class="num">12</td><td class="num">14</td><td class="num">8</td><td class="num">5</td><td class="num">3</td><td class="num">5</td><td class="num">9</td><td class="num">4</td><td class="num">7</td><td class="num">7</td><td class="num">4</td><td class="num">9</td><td class="num">5</td><td class="num">3</td></tr>
+<tr><td>4</td><td class="num">6.7</td><td class="num">8.6</td><td class="num">7</td><td class="num">3</td><td class="num">4</td><td class="num">1</td><td class="num">4</td><td class="num">4</td><td class="num">4</td><td class="num">4</td><td class="num">5</td><td class="num">6</td><td class="num">4</td><td class="num">3</td><td class="num">5</td><td class="num">3</td></tr>
+<tr><td>5</td><td class="num">6.5</td><td class="num">7.1</td><td class="num">1</td><td class="num">1</td><td class="num">3</td><td class="num">4</td><td class="num">3</td><td class="num">6</td><td class="num">1</td><td class="num">6</td><td class="num">5</td><td class="num">2</td><td class="num">3</td><td class="num">4</td><td class="num">1</td><td class="num">2</td></tr>
+<tr><td>&gt;5</td><td class="num">49.3</td><td class="num">30.3</td><td class="num">24</td><td class="num">17</td><td class="num">21</td><td class="num">13</td><td class="num">25</td><td class="num">4</td><td class="num">7</td><td class="num">9</td><td class="num">12</td><td class="num">13</td><td class="num">14</td><td class="num">6</td><td class="num">11</td><td class="num">5</td></tr>
+</tbody></table>
+</div>
+
+<p class="paper-para">
+Since the frequency tables are determined from long samples of English, the two columns for 15 and 100 letters of context are subject to less sampling error than the others. It will be seen that the prediction gradually improves, apart from some statistical fluctuation, with increasing knowledge of the past as indicated by the larger numbers of correct first guesses and the smaller numbers of high rank guesses.
+</p>
+
+<div class="annotation">
+<p class="atitle">Reading Table I</p>
+<p>Row 1 (first guess correct) rises from 18.2% (no context) to 80% (100 letters). The initial 18.2% is simply space frequency — the most common symbol. With 1 preceding letter, accuracy jumps to 29.2%. Beyond column 8, first-guess accuracy stabilizes around 60–80%. The "&gt;5" row shrinks from 49.3 to 5 — dramatic improvement. Caveat: only 100 trials per column, so considerable noise; Shannon smoothed data before computing bounds.</p>
+</div>
+
+<h3>Reverse Prediction</h3>
+
+<p class="paper-para">
+One experiment was carried out with "reverse" prediction, in which the subject guessed the letter preceding those already known. Although the task is subjectively much more difficult, the scores were only slightly poorer. Thus, with two 101 letter samples from the same source, the subject obtained the following results:
+</p>
+
+<div class="table-wrap">
+<table>
+<thead><tr><th></th><th>1</th><th>2</th><th>3</th><th>4</th><th>5</th><th>6</th><th>7</th><th>8</th><th>&gt;8</th></tr></thead>
+<tbody>
+<tr><td class="left">Forward</td><td class="num">70</td><td class="num">10</td><td class="num">7</td><td class="num">2</td><td class="num">2</td><td class="num">3</td><td class="num">3</td><td class="num">0</td><td class="num">4</td></tr>
+<tr><td class="left">Reverse</td><td class="num">66</td><td class="num">7</td><td class="num">4</td><td class="num">4</td><td class="num">6</td><td class="num">2</td><td class="num">1</td><td class="num">2</td><td class="num">9</td></tr>
+</tbody></table>
+</div>
+
+<p class="paper-para">
+Incidentally, the \(N\)-gram entropy \(F_N\) for a reversed language is equal to that for the forward language as may be seen from the second form in equation (1). Both terms have the same value in the forward and reversed cases.
+</p>
+
+<div class="annotation">
+<p class="atitle">Forward vs Reverse</p>
+<p>Guess-the-previous-letter is subjectively harder, yet scores are only slightly worse. Shannon proves \(F_N\) is symmetric (equation (1) has the same value in both directions). The experimental confirmation validates the theory.</p>
+</div>
+</section>
+
+<!-- ==================== SECTION 4 ==================== -->
+<section id="s4">
+<h2>4. Ideal \(N\)-Gram Prediction</h2>
+
+<p class="paper-para">
+The data of Table I can be used to obtain upper and lower bounds to the \(N\)-gram entropies \(F_N\). In order to do this, it is necessary first to develop some general results concerning the best possible prediction of a language when the preceding \(N\) letters are known.
+</p>
+
+<div class="annotation">
+<p class="atitle">What Is "Ideal" Prediction?</p>
+<p>An <strong>ideal predictor</strong> is a mathematical abstraction: given the preceding \((N-1)\) letters, it guesses in decreasing order of true conditional probability. First guess = most probable letter, second = second most probable, etc. No predictor can do better. This lets Shannon derive <strong>mathematical bounds</strong> independent of any human subject's quirks.</p>
+</div>
+
+<p class="paper-para">
+There will be for the language a set of conditional probabilities \(p_{i_1, i_2, \dots, i_{N-1}}(j)\). This is the probability when the \((N-1)\)-gram \(i_1, i_2, \dots, i_{N-1}\) occurs that the next letter will be \(j\). The best guess for the next letter, when this \((N-1)\)-gram is known to have occurred, will be that letter having the highest conditional probability. The second guess should be that with the second highest probability, etc. A machine or person guessing in the best way would guess letters in the order of decreasing conditional probability.
+</p>
+
+<p class="paper-para">
+The frequency of 1's in the reduced text will then be given by
+</p>
+
+<div class="math-block">
+$$
+q_1^N = \sum p(i_1, i_2, \dots, i_{N-1}, j) \tag{10}
+$$
+<p>where the sum is over all \((N-1)\)-grams, with \(j\) being the letter maximizing \(p\) for that particular \((N-1)\)-gram. \(q_2^N\) sums over second-highest-probability letters, etc.</p>
+</div>
+
+<div class="annotation">
+<p class="atitle">The \(q_i^N\) Distribution</p>
+<p>For each \(N\), we get a distribution \(q_1^N, q_2^N, \dots, q_{27}^N\) over guess numbers. \(q_1^N\) = probability first guess is correct, averaged over all contexts. As \(N\) grows, \(q_1^N\) rises and higher \(q_i^N\) shrink — more context lets you identify the single most likely next letter more often.</p>
+</div>
+
+<h3>Monotonicity: More Context Helps</h3>
+
+<p class="paper-para">
+One can prove the following inequalities:
+</p>
+
+<div class="math-block">
+$$
+\sum_{i=1}^{S} q_i^{N+1} \ge \sum_{i=1}^{S} q_i^N \qquad S = 1, 2, \dots, 27. \tag{11}
+$$
+</div>
+
+<div class="annotation">
+<p class="atitle">Why More Context Never Hurts</p>
+<p>The probability of being correct within the first \(S\) guesses is always greater or equal with more context. Proof: each \((N-1)\)-gram row is a sum of 27 \(N\)-gram rows. The sum of the top \(S\) entries per row cannot exceed the sum of the top \(S\) entries across corresponding sub-rows, since different columns can be chosen per sub-row.</p>
+</div>
+
+<p class="paper-para">
+Since the partial sums
+</p>
+
+<div class="math-block">
+$$
+Q_S^N = \sum_{i=1}^{S} q_i^N \qquad S = 1, 2, \dots \tag{13}
+$$
+</div>
+
+<p class="paper-para">
+are monotonic increasing functions of \(N\), and are &lt; 1 for all \(N\), they must all approach limits as \(N \to \infty\). Their first differences must therefore approach limits as \(N \to \infty\), i.e., the \(q_i\) approach limits, \(q_i^\infty\). These may be interpreted as the relative frequency of correct first, second, ..., guesses with knowledge of the entire (infinite) past history of the text.
+</p>
+
+<div class="annotation">
+<p class="atitle">Convergence</p>
+<p>\(Q_S^N\) is bounded above by 1 and increases with \(N\), so it converges to \(Q_S^\infty\). Hence \(q_i^N \to q_i^\infty\) — the guess distribution for an ideal predictor with <strong>infinite context</strong>. These limits represent English's true, context-length-independent prediction probabilities.</p>
+</div>
+
+<h3>Majorization: Optimality of the Ideal Predictor</h3>
+
+<p class="paper-para">
+The ideal \(N\)-gram predictor can be considered to be a transducer which operates on the language translating it into a sequence of numbers running from 1 to 27. As such it has the following two properties:
+</p>
+<ol style="margin:.4rem 0 .8rem 1.5rem">
+<li>The output symbol is a function of the present input and the preceding \((N-1)\) letters.</li>
+<li>It is <strong>instantaneously reversible</strong>. The original input can be recovered by a suitable operation on the reduced text without loss of time.</li>
+</ol>
+
+<p class="paper-para">
+The proof that the frequencies of output symbols with an \(N\)-gram predictor satisfy the inequalities can be applied to any transducer having these two properties. Thus we will have
+</p>
+
+<div class="math-block">
+$$
+\sum_{i=1}^{S} q_i^N \ge \sum_{i=1}^{S} r_i \qquad S = 1, 2, \dots, 27 \tag{15}
+$$
+</div>
+
+<p class="paper-para">
+In other words ideal prediction as defined above enjoys a preferred position among all translating operations that may be applied to a language and which satisfy the two properties above. Roughly speaking, ideal prediction collapses the probabilities of various symbols to a small group more than any other translating operation involving the same number of letters which is instantaneously reversible.
+</p>
+
+<div class="annotation">
+<p class="atitle">Majorization</p>
+<p>Among <em>all</em> instantaneously-reversible encoding schemes mapping English to numbers 1–27 based on the preceding \((N-1)\) letters, the ideal predictor produces the <strong>most skewed output distribution</strong>. Mathematically, \(q_i^N\) <strong>majorizes</strong> any other such distribution \(r_i\): the cumulative sums of its largest entries are always at least as large. This guarantees the entropy bounds derived from \(q_i^N\) are the <em>tightest possible</em>.</p>
+</div>
+
+<p class="paper-para">
+Sets of numbers satisfying the inequalities (15) have been studied by Muirhead in connection with the theory of algebraic inequalities. If (15) holds when the \(q_i^N\) and \(r_i\) are arranged in decreasing order of magnitude, and \(\sum q_i^N = \sum r_i\), then the first set, \(q_i^N\), is said to <strong>majorize</strong> the second set, \(r_i\).
+</p>
+
+<div class="info-box">
+<p><strong>Two characterizations of majorization:</strong></p>
+<ol>
+<li>The \(r_i\) can be obtained from the \(q_i\) by a finite series of <strong>"flows"</strong> — probability transfers from larger entries to smaller ones (heat flows from hot to cold).</li>
+<li>The \(r_i\) can be obtained from the \(q_i\) by a generalized <strong>"averaging"</strong> operation: a doubly stochastic matrix \(a_{ij}\) with \(r_i = \sum_j a_{ij} q_j\).</li>
+</ol>
+</div>
+</section>
+
+<!-- ==================== SECTION 5 ==================== -->
+<section id="s5">
+<h2>5. Entropy Bounds from Prediction Frequencies</h2>
+
+<p class="paper-para">
+If we know the frequencies of symbols in the reduced text with the ideal \(N\)-gram predictor, \(q_i^N\), it is possible to set both upper and lower bounds to the \(N\)-gram entropy, \(F_N\), of the original language. These bounds are as follows:
+</p>
+
+<div class="math-block">$$
+\begin{align}
+\sum_{i=1}^{27} i\left(q_i^N - q_{i+1}^N\right) \log i \; &lt; \; F_N \; &lt; \; -\sum_{i=1}^{27} q_i^N \log q_i^N. \tag{17}
+\end{align}
+$$
+</div>
+<div class="annotation">
+<p class="atitle">The Two Bounds</p>
+<ul>
+<li><strong>Upper bound</strong> (right): \(-\sum q_i^N \log q_i^N\) — the entropy of the reduced text's symbol distribution. Since the mapping is reversible, the reduced text has the same conditional entropy as the original, but its <em>unconditional</em> entropy is an upper bound on \(F_N\).</li>
+<li><strong>Lower bound</strong> (left): \(\sum i(q_i^N - q_{i+1}^N) \log i\) — from replacing each row's probability distribution with a uniform (rectangular) one, which can only <em>reduce</em> entropy. So true \(F_N\) is at least this value.</li>
+</ul>
+</div>
+
+<h3>The Upper Bound</h3>
+
+<p class="paper-para">
+The upper bound follows immediately from the fact that the maximum possible entropy in a language with letter frequencies \(q_i^N\) is \(-\sum q_i^N \log q_i^N\). Thus the entropy per symbol of the reduced text is not greater than this. The \(N\)-gram entropy of the reduced text is equal to that for the original language, as may be seen by an inspection of the definition (1) of \(F_N\). The sums involved will contain precisely the same terms although, perhaps, in a different order. This upper bound is clearly valid, whether or not the prediction is ideal.
+</p>
+
+<div class="annotation">
+<p class="atitle">Why the Upper Bound Works</p>
+<p>Entropy of a 27-symbol distribution is maximized when uniform (\(\log_2 27 \approx 4.76\)) and minimized when maximally skewed. The reduced text is heavily skewed (mostly 1's), so its entropy is low. Because the mapping is reversible and depends only on the preceding \((N-1)\) letters, the conditional entropies of original and reduced text are equal, making the reduced symbol entropy an upper bound on \(F_N\).</p>
+</div>
+
+<h3>The Lower Bound</h3>
+
+<p class="paper-para">
+The lower bound is more difficult to establish. It is necessary to show that with any selection of \(N\)-gram probabilities \(p(i_1, i_2, \dots, i_N)\), we will have
+</p>
+
+<div class="math-block">$$
+\begin{align}
+\sum_{i=1}^{27} i(q_i^N - q_{i+1}^N) \log i \; &lt; \; \sum_{i_1, \dots, i_N} p(i_1 \dots i_N) \log p_{i_1 \dots i_{N-1}}(i_N). \tag{18}
+\end{align}
+$$
+</div>
+<p class="paper-para">
+The left-hand member of the inequality can be interpreted as follows: Imagine the \(q_i^N\) arranged as a sequence of lines of decreasing height (Fig. 3). The actual \(q_i^N\) can be considered as the sum of a set of rectangular distributions as shown. The left member of (18) is the entropy of this set of distributions. Thus, the \(i\)th rectangular distribution has a total probability of \(i(q_i^N - q_{i+1}^N)\). The entropy of the distribution is \(\log i\). The total entropy is then \(\sum i(q_i^N - q_{i+1}^N) \log i\).
+</p>
+
+<div class="annotation">
+<p class="atitle">Rectangular Decomposition</p>
+<p>The descending histogram of \(q_i^N\) decomposes into rectangles: first has height \((q_1 - q_2)\) and width 1; second has height \((q_2 - q_3)\) and width 2; etc. Each is a uniform distribution over \(i\) symbols with total probability \(i(q_i - q_{i+1})\) and entropy \(\log i\).</p>
+<p>The original \(N\)-gram table rows can be decomposed similarly, but each decomposition has entropy <em>at least</em> as large as the uniform block (adding non-uniformity increases entropy). Hence original \(F_N\) is no less than the entropy of the rectangular decomposition.</p>
+</div>
+
+<div class="math-block">
+<p style="margin-bottom:.3rem">Fig. 3 — Rectangular decomposition (conceptual):</p>
+<pre>
+  0.60 | ORIGINAL DISTRIBUTION
+  0.20 | q1  q2  q3  q4  q5  q6  q7  q8
+  0.40 | = (q1 - q2) [width 1]
+  0.15 | + (q2 - q3) x 2 [width 2]
+  0.025| + (q4 - q5) x 4 [width 4]
+       | + ...</pre>
+</div>
+
+<p class="paper-para">
+The \(q_i\) as we have said are obtained from the \(p(i_1, \dots, i_N)\) by arranging each row of the table in decreasing order of magnitude and adding vertically. Thus the \(q_i\) are the sum of a set of monotonic decreasing distributions. Replace each of these distributions by its rectangular decomposition. Each one is replaced then (in general) by 27 rectangular distributions; the \(q_i\) are the sum of \(27 \times 27^N\) rectangular distributions, of from 1 to 27 elements, and all starting at the left column. The entropy for this set is less than or equal to that of the original set of distributions since a termwise addition of two or more distributions always increases entropy.
+</p>
+
+<p class="paper-para">
+This is actually an application of the general theorem that \(H_y(x) \le H(x)\) for any chance variables \(x\) and \(y\). The equality holds only if the distributions being added are proportional.
+</p>
+
+<p class="paper-para">
+Now we may add the different components of the same width without changing the entropy (since in this case the distributions are proportional). The result is a series of processes which decrease or leave constant the entropy, beginning with the original \(N\)-gram probabilities and ending with the rectangular decomposition of the \(q_i\). Consequently the entropy of the original system \(F_N\) is greater than or equal to that of the rectangular decomposition of the \(q_i\). This proves the desired result.
+</p>
+
+<p class="paper-para">
+It will be noted that the lower bound is definitely less than \(F_N\) unless each row of the table has a rectangular distribution. This requires that for each possible \((N-1)\)-gram there is a set of possible next letters each with equal probability, while all other next letters have zero probability.
+</p>
+
+<div class="annotation">
+<p class="atitle">Why Addition Increases Entropy</p>
+<p>Mixing distributions adds uncertainty about <em>which</em> component generated the sample, increasing overall entropy. Formally: \(H(X) \ge H(X|Y)\) — conditioning reduces entropy. The rectangular decomposition replaces each row's distribution with a uniform one (reducing entropy), then sums them back (restoring). Net: original \(F_N\) is at least the rectangular-decomposition entropy.</p>
+</div>
+
+<h3>Monotonicity of the Bounds</h3>
+
+<p class="paper-para">
+It will now be shown that the upper and lower bounds for \(F_N\) given by (17) are monotonic decreasing functions of \(N\). This is true of the upper bound since the \(q_i^{N+1}\) majorize the \(q_i^N\) and any equalizing flow in a set of probabilities increases the entropy.
+</p>
+
+<p class="paper-para">
+To prove that the lower bound is also monotonic decreasing we will show that the quantity
+</p>
+
+<div class="math-block">
+$$
+U = \sum_{i=1}^{27} i(q_i - q_{i+1}) \log i \tag{20}
+$$
+</div>
+
+<p class="paper-para">
+is increased by an equalizing flow among the \(q_i\). Suppose a flow occurs from \(q_i\) to \(q_{i+1}\), the first decreased by \(\Delta q\) and the latter increased by the same amount. Then three terms in the sum change and the change in \(U\) is given by
+</p>
+
+<div class="math-block">
+$$
+\Delta U = [-(i-1)\log(i-1) + 2i\log i - (i+1)\log(i+1)]\Delta q. \tag{21}
+$$
+</div>
+
+<p class="paper-para">
+The term in brackets has the form \(-f(x-1) + 2f(x) - f(x+1)\) where \(f(x) = x\log x\). Now \(f(x)\) is a function which is concave upward for positive \(x\), since \(f''(x) = 1/x &gt; 0\). The bracketed term is twice the difference between the ordinate of the curve at \(x = i\) and the ordinate of the midpoint of the chord joining \(i-1\) and \(i+1\), and consequently is negative. Since \(\Delta q\) also is negative, the change in \(U\) brought about by the flow is positive. An even simpler calculation shows that this is also true for a flow from \(q_1\) to \(q_2\) or from \(q_{26}\) to \(q_{27}\). It follows that the lower bound based on the \(N\)-gram prediction frequencies \(q_i^N\) is greater than or equal to that calculated from the \(N+1\) gram frequencies \(q_i^{N+1}\).
+</p>
+
+<div class="annotation">
+<p class="atitle">Monotonicity Intuition</p>
+<p>The lower bound \(U\) <em>increases</em> when probability flows from a larger \(q\) to a smaller one (distribution becomes more skewed). Since more context yields a more skewed distribution (majorization), the lower bound gets <em>tighter</em> as \(N\) grows. The proof uses convexity of \(f(x)=x\log x\): second derivative \(1/x &gt; 0\) makes the bracket negative; multiplying by negative \(\Delta q\) gives positive \(\Delta U\).</p>
+</div>
+</section>
+
+<!-- ==================== SECTION 6 ==================== -->
+<section id="s6">
+<h2>6. Experimental Bounds for English</h2>
+
+<p class="paper-para">
+Working from the data of Table I, the upper and lower bounds were calculated from relations (17). The data were first smoothed somewhat to overcome the worst sampling fluctuations. The low numbers in this table are the least reliable and these were averaged together in groups. Thus, in column 4, the 47, 18 and 14 were not changed but the remaining group totaling 21 was divided uniformly over the rows from 4 to 20.
+</p>
+
+<p class="paper-para">
+The upper and lower bounds given by (17) were then calculated for each column giving the following results:
+</p>
+
+<div class="table-wrap">
+<table>
+<thead><tr><th>Column \(N\)</th><th>1</th><th>2</th><th>3</th><th>4</th><th>5</th><th>6</th><th>7</th><th>8</th><th>9</th><th>10</th><th>11</th><th>12</th><th>13</th><th>14</th><th>15</th><th>100</th></tr></thead>
+<tbody>
+<tr><td class="left">Upper</td><td class="num">4.03</td><td class="num">3.42</td><td class="num">3.0</td><td class="num">2.6</td><td class="num">2.7</td><td class="num">2.2</td><td class="num">2.8</td><td class="num">1.8</td><td class="num">1.9</td><td class="num">2.1</td><td class="num">2.2</td><td class="num">2.3</td><td class="num">2.1</td><td class="num">1.7</td><td class="num">2.1</td><td class="num">1.3</td></tr>
+<tr><td class="left">Lower</td><td class="num">3.19</td><td class="num">2.50</td><td class="num">2.1</td><td class="num">1.7</td><td class="num">1.7</td><td class="num">1.3</td><td class="num">1.8</td><td class="num">1.0</td><td class="num">1.0</td><td class="num">1.0</td><td class="num">1.3</td><td class="num">1.3</td><td class="num">1.2</td><td class="num">0.9</td><td class="num">1.2</td><td class="num">0.6</td></tr>
+</tbody></table>
+</div>
+
+<div class="annotation">
+<p class="atitle">Reading the Experimental Bounds</p>
+<ul>
+<li><strong>Column 1</strong> (no context): [3.19, 4.03]. True \(F_1 = 4.14\) sits just above — human data is non-ideal; bounds only apply to ideal prediction.</li>
+<li><strong>Columns 8–15</strong>: Upper 1.7–2.3, Lower 0.9–1.3. The bounds are narrowing.</li>
+<li><strong>Column 100</strong>: Upper 1.3, Lower 0.6. The true entropy of English (100-letter context) lies between these. Shannon's famous "about one bit per letter" sits in the middle.</li>
+</ul>
+<p><strong>Caveat:</strong> The lower bound assumes ideal prediction; human data is non-ideal. But Shannon argues this is <em>more than compensated</em> by real distributions not being rectangular (the lower bound's assumption is conservative). True \(F_N\) is likely closer to the lower bound.</p>
+</div>
+
+<div class="highlight-box">
+<p><strong>The Final Answer:</strong> Ordinary literary English, with long-range statistical effects up to 100 letters, has entropy approximately <strong>1 bit per letter</strong> and redundancy roughly <strong>75%</strong>. About three-quarters of written English is determined by statistical structure — only one-quarter carries genuine new information.</p>
+</div>
+
+<p class="paper-para">
+It is evident that there is still considerable sampling error in these figures due to identifying the observed sample frequencies with the prediction probabilities. It must also be remembered that the lower bound was proved only for the ideal predictor, while the frequencies used here are from human prediction. Some rough calculations, however, indicate that the discrepancy between the actual \(F_N\) and the lower bound with ideal prediction (due to the failure to have rectangular distributions of conditional probability) more than compensates for the failure of human subjects to predict in the ideal manner. Thus we feel reasonably confident of both bounds apart from sampling errors. The values given above are plotted against \(N\) in Fig. 4.
+</p>
+
+<div class="annotation">
+<p class="atitle">Shannon's Cautious Confidence</p>
+<p>He notes three limitations: sampling error (100 trials per column), non-ideal prediction, and lower-bound approximation. Yet he expresses genuine confidence — characteristic of his rigorous-yet-pragmatic style.</p>
+</div>
+
+<div class="experiment">
+<pre style="background:none;border:none;padding:0;font-size:.68rem;line-height:1.25">
+Entropy (bits/letter)
+    ^
+4.5 | F0
+4.0 |  F1
+3.5 |   F2   Upper bound ---
+3.0 |    F3      ---
+2.5 |         \   F_word
+2.0 |          \   \
+1.5 |           \   \   Lower bound - -
+1.0 |            \   \_ _
+0.5 |             \
+    +--+--+--+--+--+--+--+--+--+--+--+--+--+--+--+--> N
+    0  1  2  3  4  5  6  7  8  9 10 11 12 13 14 15      100</pre>
+<p style="font-style:italic;color:var(--text-dim);margin-top:.2rem;font-size:.82rem">Fig. 4 — Upper and lower experimental bounds for 27-letter English entropy.</p>
+</div>
+
+<h3>Acknowledgment</h3>
+
+<p class="paper-para">
+The writer is indebted to Mrs. Mary E. Shannon and to Dr. B. M. Oliver for help with the experimental work and for a number of suggestions and criticisms concerning the theoretical aspects of this paper.
+</p>
+
+<div class="annotation">
+<p class="atitle">Behind the Scenes</p>
+<p>Mrs. Mary E. Shannon (Claude's wife) ran the tedious prediction experiments. Dr. B. M. Oliver, a Bell Labs colleague and co-inventor of pulse-code modulation (PCM), contributed theoretical suggestions.</p>
+</div>
+</section>
+
+<!-- ==================== SUMMARY ==================== -->
+<section id="summary">
+<h2>Summary &amp; Modern Connections</h2>
+
+<div class="highlight-box">
+<p><strong>The Paper at a Glance</strong></p>
+<p>Shannon answers two questions: (1) How predictable is English? — Very (75% redundant). (2) What does that tell us about its information content? — About 1 bit per letter with 100-letter context.</p>
+</div>
+
+<h3>Key Concepts</h3>
+
+<div class="table-wrap">
+<table>
+<thead><tr><th>Concept</th><th>Definition</th><th>Finding</th></tr></thead>
+<tbody>
+<tr><td class="left"><strong>Entropy \(H\)</strong></td><td class="left">Avg information per letter (bits)</td><td class="left">~1 bit/letter with long context</td></tr>
+<tr><td class="left"><strong>Redundancy</strong></td><td class="left">Fraction determined by structure</td><td class="left">~75% for literary English</td></tr>
+<tr><td class="left"><strong>\(F_N\)</strong></td><td class="left">N-gram entropy (given \(N-1\) letters)</td><td class="left">Drops 4.76 → ~1 as \(N\to\infty\)</td></tr>
+<tr><td class="left"><strong>\(q_i^N\)</strong></td><td class="left">P(correct on i-th guess)</td><td class="left">Highly skewed: mostly 1's</td></tr>
+<tr><td class="left"><strong>Majorization</strong></td><td class="left">Ideal predictor gives most concentrated output</td><td class="left">Optimal among reversible schemes</td></tr>
+<tr><td class="left"><strong>Zipf's Law</strong></td><td class="left">Word probability \(\propto 1/\text{rank}\)</td><td class="left">Word entropy ~11.82 bits/word</td></tr>
+</tbody></table>
+</div>
+
+<h3>Modern Connections</h3>
+
+<div class="annotation" style="background:var(--accent-light);border-color:var(--accent)">
+<p class="atitle" style="color:var(--accent)">Data Compression</p>
+<p>Every lossless compressor (LZW, DEFLATE, arithmetic coding, PAQ) works by <strong>predicting the next symbol</strong> and encoding only the unexpected part. Shannon's "reduced text" is exactly what compression produces: common symbols get short codes, rare symbols long codes. Entropy \(H\) is the Shannon limit — no algorithm can compress below it on average.</p>
+</div>
+
+<div class="annotation" style="background:var(--accent-light);border-color:var(--accent)">
+<p class="atitle" style="color:var(--accent)">Large Language Models (GPT, BERT)</p>
+<p>Shannon's prediction experiment is the direct ancestor of modern LLMs. A transformer is an <strong>ideal predictor</strong> trained on terabytes of text: given context, it outputs a probability distribution over the next token. The training objective (next-token prediction) is exactly Shannon's task. LLM-estimated entropy of English matches his ~1 bit per letter — a stunning validation 75 years later.</p>
+</div>
+
+<div class="annotation" style="background:var(--accent-light);border-color:var(--accent)">
+<p class="atitle" style="color:var(--accent)">Cryptography &amp; Psycholinguistics</p>
+<p>Shannon's 1949 paper founded mathematical cryptography: <strong>perfect secrecy</strong> requires key entropy at least as large as the message. English's 75% redundancy is why substitution ciphers break easily. Separately, the idea that humans are "prediction engines" now dominates cognitive science: the <strong>surprisal</strong> (\(-\log_2 p\)) of a word predicts reading time and neural responses across dozens of experiments.</p>
+</div>
+
+<div class="info-box">
+<p><strong>Why This Paper Matters:</strong> Unable to compute English entropy directly, Shannon designed a human experiment as "biological statistical engine," built rigorous optimal-prediction theory, and derived tight bounds. The core ideas — prediction as compression, the optimality of ideal prediction, and human language knowledge as a statistical resource — resonate in AI, data compression, and cognitive science 75 years later.</p>
+</div>
+</section>
+
+</main>
+
+<footer>
+<p><strong>Prediction and Entropy of Printed English</strong> &mdash; C. E. Shannon (1951) &mdash; Annotated Edition</p>
+</footer>
+
+</div>
+</div>
+</body>
+</html>

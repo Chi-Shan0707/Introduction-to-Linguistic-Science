@@ -1,9 +1,15 @@
-lec9/transcript.txt
-lec11/transcript.md
+# Project files
 pj/
 Pj/
-__pycache__/
 Project/
-lec10/
-lec12/
-lec13/
+__pycache__/
+
+# Raw lecture notes (only README.md should be pushed)
+lec*/lec*.md
+lec*/transcript.*
+lec*/*.pdf
+lec*/*.txt
+
+# OS files
+.DS_Store
+Thumbs.db
